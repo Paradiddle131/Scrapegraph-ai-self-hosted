@@ -109,6 +109,8 @@ models_tokens = {
         "qwen:32b": 32000,
         "qwen:72b": 32000,
         "qwen:110b": 32000,
+        "qwen2.5:14b": 32000,
+        "qwen3:14b": 32000,
         "stablelm-zephyr": 8192,
         "wizardlm2:8x22b": 65536,
         "mistral": 128000,
@@ -122,6 +124,7 @@ models_tokens = {
         "martcreation/dmeta-embedding-zh": 8192,
         "snowflake-arctic-embed": 8192,
         "mxbai-embed-large": 512,
+        "granite3.3:8b": 128000,
     },
     "oneapi": {
         "qwen-turbo": 6000,

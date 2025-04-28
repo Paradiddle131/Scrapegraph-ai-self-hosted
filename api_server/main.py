@@ -30,7 +30,7 @@ async def get_request_api_key(
     return x_api_key
 
 
-@app.exception_handler(Exception)
+@app.exception_handler(Exception)  # type: ignore[misc]
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
@@ -47,20 +47,25 @@ def _prepare_graph_config(
 
     model_name = settings.SCRAPEGRAPH_MODEL
     provider = get_provider_from_model(model_name)
-
-    api_key = get_api_key_for_provider(provider, settings, api_key_dependency)
-
-    if not api_key:
-        logger.error(f"API key for provider '{provider}' (model: {model_name}) not found in settings or headers.")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"API key for provider '{provider}' is required but was not found.",
-        )
+    api_key = None
 
     llm_config = {
-        "api_key": api_key,
         "model": model_name,
     }
+
+    if provider.lower() == "ollama":
+        logger.info(f"Using Ollama model '{model_name}'. API key is not required.")
+    else:
+        logger.info(f"Using non-Ollama model '{model_name}' from provider '{provider}'. API key is required.")
+        api_key = get_api_key_for_provider(provider, settings, api_key_dependency)
+        if not api_key:
+            logger.error(f"API key for provider '{provider}' (model: {model_name}) not found in settings or headers.")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"API key for provider '{provider}' is required but was not found.",
+            )
+        llm_config["api_key"] = api_key
+
     if settings.SCRAPEGRAPH_MAX_TOKENS:
          llm_config["model_tokens"] = settings.SCRAPEGRAPH_MAX_TOKENS
 
@@ -74,16 +79,19 @@ def _prepare_graph_config(
     }
 
     if config_override:
+        llm_override = config_override.pop("llm", {})
         base_config.update(config_override)
-        if "llm" in config_override:
-            base_config["llm"] = {**llm_config, **config_override["llm"]}
+        base_config["llm"] = {**llm_config, **llm_override}
 
-
-    logger.debug(f"Prepared graph config (LLM key omitted): { {k: v for k, v in base_config.items() if k != 'llm' or not isinstance(v, dict) or 'api_key' not in v} }")
+    log_config = base_config.copy()
+    if 'llm' in log_config and isinstance(log_config['llm'], dict) and 'api_key' in log_config['llm']:
+        log_config['llm'] = log_config['llm'].copy()
+        log_config['llm']['api_key'] = '***REDACTED***'
+    logger.debug(f"Prepared graph config: {log_config}")
     return base_config
 
 
-@app.post("/scrape", response_model=ScrapeResponse)
+@app.post("/scrape", response_model=ScrapeResponse)  # type: ignore[misc]
 async def scrape_endpoint(
     request: ScrapeRequest,
     api_key: Optional[str] = Depends(get_request_api_key)
@@ -120,7 +128,7 @@ async def scrape_endpoint(
         )
 
 
-@app.post("/search", response_model=SearchResponse)
+@app.post("/search", response_model=SearchResponse)  # type: ignore[misc]
 async def search_endpoint(
     request: SearchRequest,
     api_key: Optional[str] = Depends(get_request_api_key)
@@ -143,7 +151,8 @@ async def search_endpoint(
         logger.info(f"Search successful for prompt: '{request.user_prompt}'")
         logger.info("\n--- Graph Execution Information ---")
         logger.info(exec_info)
-        content_block = ContentBlock(type="text", text=result)
+        # Access the 'content' key from the result dictionary, providing a fallback
+        content_block = ContentBlock(type="text", text=result.get('content', str(result)))
         result_list = [content_block]
         return SearchResponse(
             result=result_list,
@@ -166,7 +175,7 @@ async def search_endpoint(
         )
 
 
-@app.get("/health")
+@app.get("/health")  # type: ignore[misc]
 async def health_check() -> Dict[str, str]:
     logger.debug("Health check requested")
     return {"status": "ok"}

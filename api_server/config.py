@@ -38,18 +38,23 @@ logger.info(f"Primary ScrapeGraph Model: {settings.SCRAPEGRAPH_MODEL}")
 
 
 def get_provider_from_model(model_name: str) -> str:
-    """Determines the provider based on the model name prefix."""
+    """Determines the provider based on the model name."""
     model_lower = model_name.lower()
+
     if model_lower.startswith("gpt-"):
         return "openai"
     elif model_lower.startswith("gemini-"):
         return "gemini"
     elif model_lower.startswith("claude-"):
         return "anthropic"
-    elif model_lower.startswith("llama") and "groq" not in model_lower:
-        return "ollama"
-    elif model_lower.startswith("llama") and "groq" in model_lower:
+    elif model_lower in ["llama3-8b-8192", "llama3-70b-8192", "mixtral-8x7b-32768", "gemma-7b-it"] or "groq" in model_lower:
         return "groq"
+
+    elif ':' in model_lower or any(model_lower.startswith(p) for p in ["llama", "qwen", "mistral", "phi", "gemma"]):
+         if "groq" in model_lower:
+             return "groq"
+         return "ollama"
+
     else:
         logger.warning(f"Could not determine provider for model: {model_name}. Defaulting to 'unknown'.")
         return "unknown"
