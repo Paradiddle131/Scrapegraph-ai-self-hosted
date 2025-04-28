@@ -27,6 +27,7 @@ from .smart_scraper_multi_lite_graph import SmartScraperMultiLiteGraph
 from .speech_graph import SpeechGraph
 from .xml_scraper_graph import XMLScraperGraph
 from .xml_scraper_multi_graph import XMLScraperMultiGraph
+from .deep_search_graph import DeepSearchGraph
 
 __all__ = [
     # Base graphs
@@ -59,4 +60,5 @@ __all__ = [
     "ScriptCreatorGraph",
     "ScriptCreatorMultiGraph",
     "SpeechGraph",
+    "DeepSearchGraph",
 ]

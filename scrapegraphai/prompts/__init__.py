@@ -55,6 +55,12 @@ from .search_node_with_context_prompts import (
     TEMPLATE_SEARCH_WITH_CONTEXT_NO_CHUNKS,
 )
 
+from .deep_search_prompts import (
+    EXTRACT_DETAILED_INFO_PROMPT,
+    EXTRACT_DETAILED_INFO_NO_CHUNK_PROMPT,
+    MERGE_DETAILED_REPORTS_PROMPT,
+)
+
 __all__ = [
     # CSV Answer Generation Templates
     "TEMPLATE_CHUKS_CSV",
@@ -106,4 +112,8 @@ __all__ = [
     "TEMPLATE_REASONING_WITH_CONTEXT",
     # Robot Templates
     "TEMPLATE_ROBOT",
+    # Deep Search
+    "EXTRACT_DETAILED_INFO_PROMPT",
+    "EXTRACT_DETAILED_INFO_NO_CHUNK_PROMPT",
+    "MERGE_DETAILED_REPORTS_PROMPT",
 ]
