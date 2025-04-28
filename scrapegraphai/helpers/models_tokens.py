@@ -57,9 +57,10 @@ models_tokens = {
     },
     "google_genai": {
         "gemini-pro": 128000,
-        "gemini-1.5-flash-latest": 128000,
-        "gemini-2.0-flash-latest": 128000,
-        "gemini-1.5-pro-latest": 128000,
+        "gemini-1.5-flash": 128000,
+        "gemini-2.0-flash": 128000,
+        "gemini-2.5-flash-preview-04-17": 128000,
+        "gemini-1.5-pro": 128000,
         "models/embedding-001": 2048,
     },
     "google_vertexai": {

@@ -10,7 +10,9 @@ from tqdm.asyncio import tqdm
 
 from .base_node import BaseNode
 
-DEFAULT_BATCHSIZE = 16
+from api_server.config import settings
+
+DEFAULT_BATCHSIZE = settings.SCRAPEGRAPH_BATCHSIZE
 
 
 class GraphIteratorNode(BaseNode):
