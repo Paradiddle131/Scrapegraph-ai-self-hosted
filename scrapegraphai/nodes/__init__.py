@@ -33,6 +33,7 @@ from .search_link_node import SearchLinkNode
 from .search_node_with_context import SearchLinksWithContext
 from .text_to_speech_node import TextToSpeechNode
 from .vector_store_writer_node import VectorStoreWriterNode
+from .vector_store_retriever_node import VectorStoreRetrieverNode
 
 __all__ = [
     # Base nodes
@@ -74,4 +75,5 @@ __all__ = [
     "PromptRefinerNode",
     "RAGNode",
     "VectorStoreWriterNode",
+    "VectorStoreRetrieverNode",
 ]
