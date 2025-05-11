@@ -47,7 +47,7 @@ class ChunkingNode(BaseNode):
         if not isinstance(text_to_chunk, str):
             raise TypeError(f"Input '{primary_input_key}' must be a string.")
 
-        self.logger.info(f"Received text of length {len(text_to_chunk)} for chunking.")
+        self.logger.debug(f"Received text of length {len(text_to_chunk)} for chunking.")
 
         splitter_type = self.node_config.get("splitter_type")
         chunk_size = self.node_config.get("chunk_size")
@@ -72,13 +72,13 @@ class ChunkingNode(BaseNode):
                 raise ValueError(f"Unsupported splitter_type: {splitter_type}")
 
             text_chunks = splitter.split_text(text_to_chunk)
-            self.logger.info(f"Successfully split text into {len(text_chunks)} chunks using '{splitter_type}' strategy.")
+            self.logger.debug(f"Successfully split text into {len(text_chunks)} chunks using '{splitter_type}' strategy.")
 
         except Exception as e:
             self.logger.error(f"Failed to split text using '{splitter_type}': {e}")
             raise RuntimeError(f"Text splitting failed: {e}")
 
-        output_keys = self.get_output_keys()
+        output_keys = self.output
         if not output_keys:
             raise ValueError("No output keys defined for ChunkingNode.")
 

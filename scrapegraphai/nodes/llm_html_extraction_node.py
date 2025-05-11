@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional, Any
 from .base_node import BaseNode
 from langchain_text_splitters import CharacterTextSplitter
-from scrapegraphai.helpers import models_tokens
+import tiktoken
 from scrapegraphai.prompts import LLM_HTML_EXTRACTION_DEFAULT_PROMPT, LLM_HTML_EXTRACTION_MERGE_PROMPT
 
 class LlmHtmlExtractionNode(BaseNode):
@@ -51,9 +51,13 @@ class LlmHtmlExtractionNode(BaseNode):
 
         html_chunks = []
         try:
-            html_token_count = models_tokens.num_tokens_from_string(raw_html_content, "gpt-3.5-turbo")
+            encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+            html_token_count = len(encoding.encode(raw_html_content))
+        except KeyError:
+            encoding = tiktoken.get_encoding("cl100k_base")
+            html_token_count = len(encoding.encode(raw_html_content))
         except Exception as e:
-            self.logger.warning(f"Could not calculate token count for HTML: {e}. Proceeding without chunking check based on tokens.")
+            self.logger.warning(f"Could not calculate token count for HTML using tiktoken: {e}. Proceeding without chunking check based on tokens.")
             html_token_count = 0
 
         if html_token_count > html_chunk_size_tokens and html_chunk_size_tokens > 0 :
@@ -124,7 +128,7 @@ class LlmHtmlExtractionNode(BaseNode):
         if warnings:
             state[f"{self.node_name}_warnings"] = warnings
 
-        output_keys = self.get_output_keys()
+        output_keys = self.output
         state[output_keys[0]] = final_extracted_text
 
         self.logger.info(f"{self.node_name} execution completed. Extracted text length: {len(final_extracted_text)}")

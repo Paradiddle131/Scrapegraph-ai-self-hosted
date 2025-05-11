@@ -71,7 +71,7 @@ class ReportGeneratorNode(BaseNode):
             final_report = f"Error during report synthesis: {e}"
 
 
-        output_keys = self.get_output_keys()
+        output_keys = self.output
         state[output_keys[0]] = final_report
 
         self.logger.info(f"{self.node_name} execution completed.")

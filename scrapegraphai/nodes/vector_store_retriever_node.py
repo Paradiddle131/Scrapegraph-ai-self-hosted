@@ -74,7 +74,7 @@ class VectorStoreRetrieverNode(BaseNode):
             else:
                 self.qdrant_client = QdrantClient()
 
-            self.qdrant_client.health_check()
+            self.qdrant_client.get_collections() # Check connection by trying to list collections
             self.logger.info("Successfully connected to Qdrant for retriever.")
         except Exception as e:
             self.logger.error(f"Failed to connect to Qdrant for retriever: {e}")
@@ -106,7 +106,7 @@ class VectorStoreRetrieverNode(BaseNode):
 
         qdrant_search_params = None
         if search_params_config:
-            qdrant_search_params = qdrant_models.HnswConfigDiff(**search_params_config) if "hnsw_ef" in search_params_config else None
+            qdrant_search_params = qdrant_models.SearchParams(**search_params_config)
 
         try:
             self.logger.info("Embedding the retrieval query...")
@@ -145,7 +145,7 @@ class VectorStoreRetrieverNode(BaseNode):
             self.logger.error(f"Failed to retrieve from Qdrant: {e}")
             status_message = f"Failed to retrieve from Qdrant: {e}"
 
-        output_keys = self.get_output_keys()
+        output_keys = self.output
         if not output_keys:
             raise ValueError("No output keys defined for VectorStoreRetrieverNode.")
 

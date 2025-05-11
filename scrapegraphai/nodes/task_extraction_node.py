@@ -78,7 +78,7 @@ class TaskExtractionNode(BaseNode):
             self.logger.error(f"Task extraction failed: {e}. LLM Response was: {response_text if 'response_text' in locals() else 'not available'}")
             raise RuntimeError(f"Task extraction failed: {e}")
 
-        output_keys = self.get_output_keys()
+        output_keys = self.output
         state[output_keys[0]] = extracted_tasks_list
 
         self.logger.info(f"{self.node_name} execution completed. Produced {len(extracted_tasks_list)} tasks.")

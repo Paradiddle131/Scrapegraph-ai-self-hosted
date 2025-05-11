@@ -80,7 +80,7 @@ class VectorStoreWriterNode(BaseNode):
             else:
                 self.qdrant_client = QdrantClient()
 
-            self.qdrant_client.health_check()
+            self.qdrant_client.get_collections() # Check connection by trying to list collections
             self.logger.info("Successfully connected to Qdrant.")
         except Exception as e:
             self.logger.error(f"Failed to connect to Qdrant: {e}")
@@ -202,7 +202,7 @@ class VectorStoreWriterNode(BaseNode):
                 "error": str(e)
             }
 
-        output_keys = self.get_output_keys()
+        output_keys = self.output
         if not output_keys:
             raise ValueError("No output keys defined for VectorStoreWriterNode.")
 
