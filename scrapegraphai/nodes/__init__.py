@@ -37,6 +37,7 @@ from .vector_store_retriever_node import VectorStoreRetrieverNode
 from .llm_html_extraction_node import LlmHtmlExtractionNode
 from .chunking_node import ChunkingNode
 from .task_extraction_node import TaskExtractionNode
+from .report_generator_node import ReportGeneratorNode
 
 __all__ = [
     # Base nodes
@@ -82,4 +83,5 @@ __all__ = [
     "LlmHtmlExtractionNode",
     "ChunkingNode",
     "TaskExtractionNode",
+    "ReportGeneratorNode",
 ]
