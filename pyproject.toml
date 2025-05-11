@@ -32,6 +32,7 @@ dependencies = [
     "jsonschema>=4.23.0",
     "duckduckgo-search>=7.2.1",
     "pydantic>=2.10.2",
+    "qdrant-client>=1.9.0",
 ]
 
 readme = "README.md"
