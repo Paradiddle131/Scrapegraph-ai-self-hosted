@@ -1,13 +1,7 @@
-# scrapegraphai/nodes/vector_store_writer_node.py
-import uuid # For generating unique IDs for Qdrant points
+import uuid
 from typing import List, Dict, Optional, Any
 from .base_node import BaseNode
 from qdrant_client import QdrantClient, models as qdrant_models
-
-# Langchain embedding imports
-# from langchain_openai import OpenAIEmbeddings
-# from langchain_community.embeddings import HuggingFaceInstructEmbeddings
-
 
 class VectorStoreWriterNode(BaseNode):
     """
@@ -39,7 +33,7 @@ class VectorStoreWriterNode(BaseNode):
                 raise ValueError(f"Missing required configuration '{req_config}' in VectorStoreWriterNode node_config.")
 
         qdrant_config = self.node_config.get("qdrant_config", {})
-        required_qdrant_configs = ["collection_name", "vector_size"] # host and port can be optional if QDRANT_URL is set
+        required_qdrant_configs = ["collection_name", "vector_size"]
         for req_q_config in required_qdrant_configs:
             if req_q_config not in qdrant_config:
                 raise ValueError(f"Missing required Qdrant configuration '{req_q_config}' in node_config.qdrant_config.")
@@ -76,7 +70,7 @@ class VectorStoreWriterNode(BaseNode):
         host = q_config.get("host")
         port = q_config.get("port")
         api_key = q_config.get("api_key")
-        url = q_config.get("url") # Alternative to host/port
+        url = q_config.get("url")
 
         try:
             if url:
@@ -84,10 +78,9 @@ class VectorStoreWriterNode(BaseNode):
             elif host and port:
                 self.qdrant_client = QdrantClient(host=host, port=port, api_key=api_key)
             else:
-                # Try with environment variables or local default
                 self.qdrant_client = QdrantClient()
-            
-            self.qdrant_client.health_check() # Verify connection
+
+            self.qdrant_client.health_check()
             self.logger.info("Successfully connected to Qdrant.")
         except Exception as e:
             self.logger.error(f"Failed to connect to Qdrant: {e}")
@@ -100,11 +93,11 @@ class VectorStoreWriterNode(BaseNode):
         input_keys = self.get_input_keys(state)
         if not input_keys:
             raise KeyError("No input keys found for VectorStoreWriterNode.")
-        
+
         primary_input_key = input_keys[0]
         if primary_input_key not in state:
             raise KeyError(f"Input key '{primary_input_key}' not found in state.")
-        
+
         chunks_to_embed_and_store = state[primary_input_key]
 
         if not isinstance(chunks_to_embed_and_store, list) or \
@@ -118,12 +111,11 @@ class VectorStoreWriterNode(BaseNode):
         vector_size = qdrant_config.get("vector_size")
         distance_metric_str = qdrant_config.get("distance_metric", "Cosine").upper()
         distance_metric = getattr(qdrant_models.Distance, distance_metric_str, qdrant_models.Distance.COSINE)
-        
+
         batch_size_qdrant_upload = self.node_config.get("batch_size", 64)
         force_recreate_collection = self.node_config.get("force_recreate_collection", False)
         metadata_keys_from_state = self.node_config.get("metadata_keys_from_state", [])
 
-        # Generate embeddings
         try:
             self.logger.info(f"Generating embeddings for {len(chunks_to_embed_and_store)} chunks...")
             embeddings = self.embedder.embed_documents(chunks_to_embed_and_store)
@@ -137,10 +129,8 @@ class VectorStoreWriterNode(BaseNode):
             self.logger.error(f"Failed to generate embeddings: {e}")
             raise RuntimeError(f"Embedding generation failed: {e}")
 
-        # Qdrant Integration Logic
         indexed_count = 0
         try:
-            # Check if collection exists
             try:
                 collection_info = self.qdrant_client.get_collection(collection_name=collection_name)
                 self.logger.info(f"Collection '{collection_name}' already exists.")
@@ -153,7 +143,6 @@ class VectorStoreWriterNode(BaseNode):
                     )
                     self.logger.info(f"Collection '{collection_name}' recreated.")
                 else:
-                    # Validate existing collection parameters (simplified check)
                     if collection_info.config.params.vectors.size != vector_size or \
                        collection_info.config.params.vectors.distance != distance_metric:
                         self.logger.warning(
@@ -163,8 +152,8 @@ class VectorStoreWriterNode(BaseNode):
                             "Proceeding with existing collection, but this might lead to issues."
                         )
 
-            except Exception as e: # qdrant_client.http.exceptions.UnexpectedResponse: Not found: Collection `...` not found!
-                 if "not found" in str(e).lower(): # More robust check might be needed based on Qdrant's specific exception types
+            except Exception as e:
+                 if "not found" in str(e).lower():
                     self.logger.info(f"Collection '{collection_name}' not found. Creating new collection.")
                     self.qdrant_client.create_collection(
                         collection_name=collection_name,
@@ -172,19 +161,17 @@ class VectorStoreWriterNode(BaseNode):
                     )
                     self.logger.info(f"Collection '{collection_name}' created.")
                  else:
-                    raise # Re-raise if it's another error
+                    raise
 
-            # Prepare and upload points
             points_to_upload = []
             for i, chunk_text in enumerate(chunks_to_embed_and_store):
                 payload = {'text_chunk': chunk_text}
-                # Add metadata from state
                 for key in metadata_keys_from_state:
                     if key in state:
                         payload[key] = state[key]
-                
+
                 points_to_upload.append(qdrant_models.PointStruct(
-                    id=str(uuid.uuid4()), # Generate unique ID
+                    id=str(uuid.uuid4()),
                     vector=embeddings[i],
                     payload=payload
                 ))
@@ -194,8 +181,8 @@ class VectorStoreWriterNode(BaseNode):
                     indexed_count += len(points_to_upload)
                     self.logger.info(f"Uploaded batch of {len(points_to_upload)} points to Qdrant.")
                     points_to_upload = []
-            
-            if points_to_upload: # Upload remaining points
+
+            if points_to_upload:
                 self.qdrant_client.upsert(collection_name=collection_name, points=points_to_upload, wait=True)
                 indexed_count += len(points_to_upload)
                 self.logger.info(f"Uploaded final batch of {len(points_to_upload)} points to Qdrant.")
@@ -214,18 +201,12 @@ class VectorStoreWriterNode(BaseNode):
                 "status": f"Failed to write to Qdrant: {e}",
                 "error": str(e)
             }
-            # Optionally re-raise or handle as per graph's error handling strategy
-            # For now, we'll update the state with the error and let the graph continue if possible.
 
         output_keys = self.get_output_keys()
         if not output_keys:
             raise ValueError("No output keys defined for VectorStoreWriterNode.")
-            
+
         state[output_keys[0]] = write_status
-        # Also pass through the original chunks and embeddings if needed by subsequent nodes,
-        # though typically this node is a sink or intermediate for RAG.
-        # state["processed_chunks"] = chunks_to_embed_and_store
-        # state["generated_embeddings"] = embeddings
 
         self.logger.info(f"VectorStoreWriterNode execution completed. Status: {write_status['status']}")
         return state

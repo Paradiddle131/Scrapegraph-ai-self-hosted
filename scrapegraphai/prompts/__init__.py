@@ -54,6 +54,11 @@ from .search_node_with_context_prompts import (
     TEMPLATE_SEARCH_WITH_CONTEXT_CHUNKS,
     TEMPLATE_SEARCH_WITH_CONTEXT_NO_CHUNKS,
 )
+from .default_report_synthesis import DEFAULT_REPORT_SYNTHESIS_PROMPT
+from .default_task_extraction import DEFAULT_TASK_EXTRACTION_PROMPT
+from .llm_html_extraction_default import LLM_HTML_EXTRACTION_DEFAULT_PROMPT
+from .llm_html_extraction_merge import LLM_HTML_EXTRACTION_MERGE_PROMPT
+
 
 __all__ = [
     # CSV Answer Generation Templates
@@ -106,4 +111,9 @@ __all__ = [
     "TEMPLATE_REASONING_WITH_CONTEXT",
     # Robot Templates
     "TEMPLATE_ROBOT",
+    # Default Prompts
+    "DEFAULT_REPORT_SYNTHESIS_PROMPT",
+    "DEFAULT_TASK_EXTRACTION_PROMPT",
+    "LLM_HTML_EXTRACTION_DEFAULT_PROMPT",
+    "LLM_HTML_EXTRACTION_MERGE_PROMPT",
 ]
